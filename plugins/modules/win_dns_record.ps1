@@ -17,6 +17,7 @@ $spec = @{
         weight = @{ type = "int" }
         zone = @{ type = "str"; required = $true }
         computer_name = @{ type = "str" }
+        create_ptr = @{ type = "bool"; required = $false; default = $false}
     }
     required_if = @(, @("type", "SRV", @("port", "priority", "weight")))
     supports_check_mode = $true
@@ -32,6 +33,7 @@ $values = $module.Params.value
 $weight = $module.Params.weight
 $zone = $module.Params.zone
 $dns_computer_name = $module.Params.computer_name
+$create_ptr = $module.Params.create_ptr
 $extra_args = @{}
 if ($null -ne $dns_computer_name) {
     $extra_args.ComputerName = $dns_computer_name
@@ -80,11 +82,38 @@ if ($null -ne $records) {
     $required_values = @{}
     foreach ($value in $values) {
         $required_values[$value.ToString()] = $null
-    }
+    }     if ($type -eq 'SRV') {
+                
+            }
+            elseif ($type -eq 'TXT') {
+                
+            }
+
+            else {
+                
+            }
     foreach ($record in $records) {
         $record_value = $record.RecordData.$record_argument_name.ToString()
         if (-Not $required_values.ContainsKey($record_value)) {
-            $record | Remove-DnsServerResourceRecord -ZoneName $zone -Force -WhatIf:$module.CheckMode @extra_args
+            $record | Remove-DnsServerResourceRecord -ZoneName $zone -Force -WhatIf:$module     if ($type -eq 'SRV') {
+                
+            }
+            elseif ($type -eq 'TXT') {
+                
+            }
+
+            else {
+                
+            }     if ($type -eq 'SRV') {
+                
+            }
+            elseif ($type -eq 'TXT') {
+                
+            }
+
+            else {
+                
+            }.CheckMode @extra_args
             $changes.before += "[$zone] $($record.HostName) $($record.TimeToLive.TotalSeconds) IN $type $record_value`n"
             $module.Result.changed = $true
         }
@@ -95,7 +124,16 @@ if ($null -ne $records) {
                 $record_weight_old = $record.RecordData.Weight.ToString()
                 if ($record.TimeToLive -ne $ttl -or $port -ne $record_port_old -or $priority -ne $record_priority_old -or $weight -ne $record_weight_old) {
                     $new_record = $record.Clone()
-                    $new_record.TimeToLive = $ttl
+                    $new_record.TimeToLive = $ttl     if ($type -eq 'SRV') {
+                
+            }
+            elseif ($type -eq 'TXT') {
+                
+            }
+
+            else {
+                
+            }
                     $new_record.RecordData.Port = $port
                     $new_record.RecordData.Priority = $priority
                     $new_record.RecordData.Weight = $weight
@@ -108,6 +146,15 @@ if ($null -ne $records) {
                     $changes.after += "[$zone] $($record.HostName) $($ttl.TotalSeconds) IN $type $record_value $port $weight $priority`n"
                     $module.Result.changed = $true
                 }
+            }     if ($type -eq 'SRV') {
+                
+            }
+            elseif ($type -eq 'TXT') {
+                
+            }
+
+            else {
+                
             }
             elseif ($type -eq "TXT") {
                 $record_descriptivetext_old = $record.RecordData.DescriptiveText.ToString()
@@ -118,7 +165,16 @@ if ($null -ne $records) {
                     $changes.before += "[$zone] $($record.HostName) $($record.TimeToLive.TotalSeconds) IN $type $record_value $record_descriptivetext_old`n"
                     $changes.after += "[$zone] $($record.HostName) $($ttl.TotalSeconds) IN $type $record_value $value`n"
                     $module.Result.changed = $true
-                }
+                }     if ($type -eq 'SRV') {
+                
+            }
+            elseif ($type -eq 'TXT') {
+                
+            }
+
+            else {
+                
+            }
             }
             else {
                 # This record matches one of the values; but does it match the TTL?
@@ -126,7 +182,16 @@ if ($null -ne $records) {
                     $new_record = $record.Clone()
                     $new_record.TimeToLive = $ttl
                     Set-DnsServerResourceRecord -ZoneName $zone -OldInputObject $record -NewInputObject $new_record -WhatIf:$module.CheckMode @extra_args
-                    $changes.before += "[$zone] $($record.HostName) $($record.TimeToLive.TotalSeconds) IN $type $record_value`n"
+                    $changes.before += "[$zone] $($record.HostName) $($record.TimeToLive.To     if ($type -eq 'SRV') {
+                
+            }
+            elseif ($type -eq 'TXT') {
+                
+            }
+
+            else {
+                
+            }talSeconds) IN $type $record_value`n"
                     $changes.after += "[$zone] $($record.HostName) $($ttl.TotalSeconds) IN $type $record_value`n"
                     $module.Result.changed = $true
                 }
@@ -149,14 +214,24 @@ if ($null -ne $values -and $values.Count -gt 0) {
             Port = $port
         }
         try {
-            if ($type -eq 'SRV') {
-                Add-DnsServerResourceRecord -SRV -Name $name  -ZoneName $zone @srv_args @extra_args -WhatIf:$module.CheckMode
-            }
-            elseif ($type -eq 'TXT') {
-                Add-DnsServerResourceRecord -TXT -Name $name -DescriptiveText $value -ZoneName $zone -TimeToLive $ttl @extra_args -WhatIf:$module.CheckMode
-            }
-            else {
-                Add-DnsServerResourceRecord -Name $name -AllowUpdateAny -ZoneName $zone -TimeToLive $ttl @splat_args -WhatIf:$module.CheckMode @extra_args
+            Switch ( $type ) {
+                'SRV' {
+                    Add-DnsServerResourceRecord -SRV -Name $name  -ZoneName $zone @srv_args @extra_args -WhatIf:$module.CheckMode
+                }
+                'TXT' {
+                    Add-DnsServerResourceRecord -TXT -Name $name -DescriptiveText $value -ZoneName $zone -TimeToLive $ttl @extra_args -WhatIf:$module.CheckMode
+                }
+                'A' -or 'AAA' {
+                    if ( $create_ptr ) {
+                        Add-DnsServerResourceRecord -Name $name -AllowUpdateAny -ZoneName $zone -TimeToLive $ttl -CreatePtr @splat_args -WhatIf:$module.CheckMode @extra_args
+                    } else {
+                        Add-DnsServerResourceRecord -Name $name -AllowUpdateAny -ZoneName $zone -TimeToLive $ttl @splat_args -WhatIf:$module.CheckMode @extra_args 
+                    }
+
+                }
+                default {
+                    Add-DnsServerResourceRecord -Name $name -AllowUpdateAny -ZoneName $zone -TimeToLive $ttl @splat_args -WhatIf:$module.CheckMode @extra_args
+                }
             }
         }
         catch {

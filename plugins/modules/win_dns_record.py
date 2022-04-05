@@ -89,6 +89,13 @@ options:
         address, such as a fully qualified domain name (FQDN), host name, or
         NETBIOS name.
     type: str
+  create_ptr:
+    description:
+      - If creating C(type=A) or C(type=AAAA) record also create the PTR record.
+      - Ignored if not creating C(type=A) or C(type=AAAA) records
+    choices: [yes, no]
+    default: no
+    type: bool
 '''
 
 EXAMPLES = r'''
