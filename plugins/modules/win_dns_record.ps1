@@ -221,9 +221,9 @@ if ($null -ne $values -and $values.Count -gt 0) {
                 'TXT' {
                     Add-DnsServerResourceRecord -TXT -Name $name -DescriptiveText $value -ZoneName $zone -TimeToLive $ttl @extra_args -WhatIf:$module.CheckMode
                 }
-                'A' -or 'AAA' {
+                { 'A' -or 'AAA' } {
                     if ( $create_ptr ) {
-                        Add-DnsServerResourceRecord -Name $name -AllowUpdateAny -ZoneName $zone -TimeToLive $ttl -CreatePtr @splat_args -WhatIf:$module.CheckMode @extra_args
+                        Add-DnsServerResourceRecord -Name $name -AllowUpdateAny -ZoneName $zone -TimeToLive $ttl @splat_args -WhatIf:$module.CheckMode @extra_args
                     } else {
                         Add-DnsServerResourceRecord -Name $name -AllowUpdateAny -ZoneName $zone -TimeToLive $ttl @splat_args -WhatIf:$module.CheckMode @extra_args 
                     }
